@@ -1,6 +1,4 @@
-﻿#region Connect-Office365
-#region AzureAD Credentials
-
+﻿#region AzureAD Credentials
 function Get-AzureADCredential
 {
     [cmdletbinding()]
@@ -66,8 +64,7 @@ function Connect-MsolServiceOnline
         }
 
         try
-        {
-            Write-Verbose -Message 'Conncting to MSolService' -Verbose
+        {            
             Connect-MsolService -Credential $Script:PHAzureADcredential -ErrorAction Stop -WarningAction SilentlyContinue
         }
         catch
@@ -76,6 +73,21 @@ function Connect-MsolServiceOnline
             return
         }
     }
+}
+function Disconnect-MsolServiceOnline
+{
+    [cmdletbinding()]
+    param ()
+    try
+    {
+        Remove-Module -Name MSOnline -ErrorAction Stop -WarningAction SilentlyContinue
+        Write-Verbose -Message 'MsolService Module is now closed.' -Verbose
+    }
+    catch
+    {
+        Write-Warning -Message "Unable to remove MsolService Module - $($_.Exception.Message)"
+        return
+    }    
 }
 #endregion Microsoft Online
 #region AzureAD
@@ -104,8 +116,7 @@ function Connect-AzureADOnline
         }
 
         try
-        {
-            Write-Verbose -Message 'Conncting to AzureAD' -Verbose
+        {            
             $null = Connect-AzureAD -Credential $script:PHAzureADcredential -ErrorAction Stop -WarningAction SilentlyContinue
         }
         catch
@@ -122,14 +133,16 @@ function Disconnect-AzureADOnline
     try
     {
         Disconnect-AzureAD -ErrorAction Stop
+        Write-Verbose -Message 'Azure ADSession is now closed.' -Verbose
     }
     catch
     {
+        Write-Warning -Message "Unable to remove AzureAD Session - $($_.Exception.Message)"
         return
     }    
 }
 #endregion AzureAD
-#region Compliance Center Online 
+#region Compliance Center Online
 function Connect-CCOnline
 {
     [cmdletbinding()]
@@ -150,8 +163,7 @@ function Connect-CCOnline
         return
     }
     try
-    {
-        Write-Verbose -Message 'Conncting to Compliance Center' -Verbose
+    {        
         $null = Import-PSSession -Session (Get-CCOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue
     }
     catch
@@ -159,6 +171,25 @@ function Connect-CCOnline
         Write-Warning -Message "Unable to load PSSession for Compliance Center - $($_.Exception.Message)"
         return
     }
+}
+function Disconnect-CCOnline
+{
+    [cmdletbinding()]
+    param ()
+
+    try
+    {
+        if ($null -ne ($ccsession = Get-CCOnlineSession))
+        {
+            Remove-PSSession -Session ($ccsession) -ErrorAction Stop
+            Write-Verbose -Message 'The Compliance Center Online PSSession is now closed.' -Verbose
+        }        
+    }
+    catch
+    {
+        Write-Warning -Message "Unable to remove PSSession for Compliance Center - $($_.Exception.Message)"
+        return
+    }          
 }
 function Get-CCOnlineSession
 {
@@ -177,24 +208,6 @@ function Get-CCOnlineSession
     
     return $session
 
-}
-function Disconnect-CCOnline
-{
-    [cmdletbinding()]
-    param ()
-
-    try
-    {
-        Remove-PSSession -Session (Get-CCOnlineSession) -ErrorAction Stop
-    }
-    catch
-    {
-        Write-Warning -Message "Unable to remove PSSession for Compliance Center - $($_.Exception.Message)"
-        return
-    }
-    
-    Write-Verbose -Message 'The Compliance Center Online PSSession is now closed.' -Verbose
-   
 }
 #endregion Compliance Center Online
 #region Exchange Online
@@ -218,8 +231,7 @@ function Connect-ExchangeOnline
         return
     }
     try
-    {
-        Write-Verbose -Message 'Conncting to Exchange Online' -Verbose
+    {        
         $null = Import-PSSession -Session (Get-ExchangeOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue
     }
     catch
@@ -235,15 +247,17 @@ function Disconnect-ExchangeOnline
 
     try
     {
-        Remove-PSSession -Session (Get-ExchangeOnlineSession) -ErrorAction Stop
+        if ($null -ne ($exonline = Get-ExchangeOnlineSession))
+        {
+            Remove-PSSession -Session ($exonline) -ErrorAction Stop
+            Write-Verbose -Message 'The Exchange Online PSSession is now closed.' -Verbose
+        }
     }
     catch
     {
         Write-Warning -Message "Unable to remove PSSession for Exchange Online - $($_.Exception.Message)"
         return
-    }
-    
-    Write-Verbose -Message 'The Exchange Online PSSession is now closed.' -Verbose 
+    }       
 }
 function Get-ExchangeOnlineSession
 {
@@ -296,8 +310,7 @@ function Connect-SPOnline
         }
 
         try
-        {
-            Write-Verbose -Message 'Conncting to Sharepoint Online' -Verbose
+        {            
             Connect-SPOService -Url "https://$($SharepointDomain)-admin.sharepoint.com" -Credential $script:PHAzureADcredential -ErrorAction Stop -WarningAction SilentlyContinue
         }
         catch
@@ -305,6 +318,25 @@ function Connect-SPOnline
             Write-Warning -Message "Unable to Connect to Sharepoint Online Session - $($_.Exception.Message)"
             return
         }
+    }
+}
+function Disconnect-SPOnline
+{
+    [cmdletbinding()]
+    param ()
+
+    try
+    {
+        if ($null -ne (Get-SPOnlineSession))
+        {
+            Disconnect-SPOService -ErrorAction Stop
+            Write-Verbose -Message 'The Exchange Online PSSession is now closed.' -Verbose
+        }
+    }
+    catch
+    {
+        Write-Warning -Message "Unable to disconnect Sharepoint Online Session - $($_.Exception.Message)"
+        return
     }
 }
 function Get-SPOnlineSession
@@ -330,29 +362,7 @@ function Get-SPOnlineSession
         return $true
     }
 }
-function Disconnect-SPOnline
-{
-    [cmdletbinding()]
-    param ()
 
-    if ($null -eq (Get-SPOnlineSession))
-    {
-        Write-Verbose -Message 'No Sharepoint Online Session is active' -Verbose
-        return
-    }
-    else 
-    {
-        try
-        {
-            Disconnect-SPOService -ErrorAction Stop
-        }
-        catch
-        {
-            Write-Warning -Message "Unable to disconnect Sharepoint Online Session - $($_.Exception.Message)"
-            return
-        }
-    }    
-}
 #endregion SharePoint Online
 #region Skype for Business Online
 function Connect-SfBOnline
@@ -394,8 +404,7 @@ function Connect-SfBOnline
             return
         }
         try
-        {
-            Write-Verbose -Message 'Conncting to Skype for Business Online' -Verbose
+        {            
             $null = Import-PSSession -Session (Get-SfBOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue
         }
         catch
@@ -403,6 +412,25 @@ function Connect-SfBOnline
             Write-Warning -Message "Unable to load PSSession for Skype for Business Online - $($_.Exception.Message)"
             return
         }
+    }
+}
+function Disconnect-SfBOnline
+{
+    [cmdletbinding()]
+    param ()
+
+    try
+    {
+        if ($null -ne ($sbfosession = Get-SfBOnlineSession))
+        {
+            Remove-PSSession -Session ($sbfosession) -ErrorAction Stop
+            Write-Verbose -Message 'The Skype for Business Online PSSession is now closed.' -Verbose
+        }
+    }
+    catch
+    {
+        Write-Warning -Message "Unable to remove PSSession for Skype for Business Online - $($_.Exception.Message)"
+        return
     }
 }
 function Get-SfBOnlineSession
@@ -422,88 +450,162 @@ function Get-SfBOnlineSession
 
     return $session
 }
-
-function Disconnect-SfBOnline
-{
-    [cmdletbinding()]
-    param ()
-
-    try
-    {
-        Remove-PSSession -Session (Get-SfBOnlineSession) -ErrorAction Stop
-    }
-    catch
-    {
-        Write-Warning -Message "Unable to remove PSSession for Skype for Business Online - $($_.Exception.Message)"
-        return
-    }        
-    
-    Write-Verbose -Message 'The Skype for Business Online PSSession is now closed.' -Verbose
-     
-}
 #endregion Skype for Business Online
 #region Office 365 Sessions
 function Connect-PHOffice365
 {
-    [cmdletbinding()]
+    <#
+        .SYNOPSIS
+        Connect to one or more Office 365 services using Powershell.
+        
+        .DESCRIPTION
+        Connect to one ore more Office 365 (AzureAD) services using Powershell. Some services requires the installation of separate PowerShell modules or binaires.
+        AzureAD requires a separate module - https://www.powershellgallery.com/packages/AzureAD/ or cmdlet "Install-Module -Name AzureAD"
+        MsolService requraes a seprate module - http://go.microsoft.com/fwlink/?linkid=236297
+        Sharepoint Online requires a separate module - https://www.microsoft.com/en-us/download/details.aspx?id=35588
+        Skype for Business Online requires a separate module - https://www.microsoft.com/en-us/download/details.aspx?id=39366
+
+        .EXAMPLE
+        Connect-PHOffice365
+        
+        VERBOSE: Conncting to AzureAD.
+        VERBOSE: Conncting to MSolService.
+
+        This command connects to AzureAD and MsolService service sessions using the credentials provided when prompted.
+
+        .EXAMPLE
+        Connect-PHOffice365 -Service ComplianceCenter, ExchangeOnline, AzureAD
+
+        VERBOSE: Conncting to AzureAD.
+        VERBOSE: Conncting to Compliance Center.
+        VERBOSE: Conncting to Exchange Online.
+
+        This command connects to AzureAD, ComplianceCenter and ExchageOnline service sessions using the credentials provided when prompted.
+
+
+        .EXAMPLE
+        Connect-PHOffice365 -Service All
+
+        VERBOSE: Connecting to all Office 365 Services.
+        This command connects to all Office 365 service sessions using the credentials provided when prompted.
+
+
+        .NOTES
+        Created on:     2017-02-23 14:56
+        Created by:     Philip Haglund
+        Organization:   Gonjer.com        
+        Version:        0.1
+        Requirements:   Powershell 3.0
+        Changelog:      2017-02-23 14:56 - Creation of script.        
+
+        .LINK
+        http://www.gonjer.com        
+    #>
+    [cmdletbinding(
+        SupportsShouldProcess = $true
+    )]
+    # Provide one or more Office 365 services to connect to.
     param (
         [Parameter(
-            ValueFromPipeline = $true            
+            ValueFromPipeline = $true,
+            Position = 0
         )]
         [ValidateSet('All','AzureAD','ComplianceCenter','ExchangeOnline','MSOnline','SharepointOnline','SkypeforBusinessOnline')]
         [ValidateNotNullOrEmpty()]
         [string[]]$Service = @('AzureAD','MSOnline')
     )
 
+    DynamicParam
+    {
+        if ($Service -match 'All|SharepointOnline')
+        {      
+            # Create a ParameterAttribute Object
+            $domainattrib = New-Object -TypeName System.Management.Automation.ParameterAttribute
+            $domainattrib.Position = 1
+            $domainattrib.Mandatory = $true            
+            $domainattrib.HelpMessage = 'Enter a valid Sharepoint Online Domain. Example: "Contoso"'
+            
+            # Create an AliasAttribute Object for the parameter
+            $domainalias = New-Object System.Management.Automation.AliasAttribute -ArgumentList @('Domain','DomainHost','Customer')
+
+            # Create an AttributeCollection Object
+            $attribcol = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
+                       
+            # Add the attributes to the AttributeCollection
+            $attribcol.Add($domainattrib)
+            $attribcol.Add($domainalias)
+            
+            # Add the SharepointDomain paramater to the "Runtime"
+            $domainparam = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter('SharepointDomain', [string], $attribcol)
+            
+            # Expose the paramete
+            $paramDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
+            $paramDictionary.Add('SharepointDomain', $domainparam)
+            return $paramDictionary
+        }
+    }
     begin
     {
-        $null = Get-AzureADCredential
-        if ($Script:PHAzureADcredential -eq $false)
+        if (($service = $Service | Sort-Object -Unique).Count -gt 5)
         {
-            Write-Warning -Message 'Need valid credentials to connect, please provide the correct credentials.'
-            break
+            $Service = 'All'
         }
     }
     process
     {
-        switch ($Service)
+        if ($PSCmdlet.ShouldProcess("Establishing PowerShell session(s) to $("$Service" -replace '\s',', ') for Office 365.", $MyInvocation.MyCommand.Name))
         {
-            'AzureAD'
+            $null = Get-AzureADCredential
+            if ($Script:PHAzureADcredential -eq $false)
             {
-                Connect-AzureADOnline
+                Write-Warning -Message 'Need valid credentials to connect, please provide the correct credentials.'
+                break
             }
-            'MSOnline'
+
+            switch ($Service)
             {
-                Connect-MsolServiceOnline
-            }
-            'ComplianceCenter'
-            {
-                Connect-CCOnline
-            }
-            'ExchangeOnline'
-            {
-                Connect-ExchangeOnline
-            }
-            'SharepointOnline'
-            {
-                Connect-SPOnline
-            }
-            'SkypeforBusinessOnline'
-            {
-                Connect-SfBOnline
-            }
-            Default
-            {
-                Write-Verbose -Message 'Connecting to all Office 365 Services' -Verbose
-                Connect-AzureADOnline
-                Connect-MsolServiceOnline
-                Connect-CCOnline
-                Connect-ExchangeOnline
-                Connect-SPOnline
-                Connect-SfBOnline
+                'AzureAD'
+                {
+                    Write-Verbose -Message 'Conncting to AzureAD.' -Verbose
+                    Connect-AzureADOnline
+                }
+                'MSOnline'
+                {
+                    Write-Verbose -Message 'Conncting to MSolService.' -Verbose
+                    Connect-MsolServiceOnline
+                }
+                'ComplianceCenter'
+                {
+                    Write-Verbose -Message 'Conncting to Compliance Center.' -Verbose
+                    Connect-CCOnline
+                }
+                'ExchangeOnline'
+                {
+                    Write-Verbose -Message 'Conncting to Exchange Online.' -Verbose
+                    Connect-ExchangeOnline
+                }
+                'SharepointOnline'
+                {
+                    Write-Verbose -Message 'Conncting to Sharepoint Online.' -Verbose
+                    Connect-SPOnline -SharepointDomain $PSBoundParameters['SharepointDomain']
+                }
+                'SkypeforBusinessOnline'
+                {
+                    Write-Verbose -Message 'Conncting to Skype for Business Online.' -Verbose
+                    Connect-SfBOnline
+                }
+                Default
+                {
+                    Write-Verbose -Message 'Connecting to all Office 365 Services.' -Verbose
+                    Connect-AzureADOnline
+                    Connect-MsolServiceOnline
+                    Connect-CCOnline
+                    Connect-ExchangeOnline
+                    Connect-SPOnline
+                    Connect-SfBOnline
+                }
             }
         }
-    
     }
     end
     {
@@ -512,8 +614,49 @@ function Connect-PHOffice365
 }
 function Disconnect-PHOffice365 
 {
-    [cmdletbinding()]
+    <#
+        .SYNOPSIS
+        Disconnect from one or more Office 365 services using Powershell.
+        
+        .DESCRIPTION
+        Disconnect from one ore more Office 365 (AzureAD) services using Powershell. Some services requires the installation of separate PowerShell modules or binaires.
+        AzureAD requires a separate module - https://www.powershellgallery.com/packages/AzureAD/ or cmdlet "Install-Module -Name AzureAD"
+        MsolService requraes a seprate module - http://go.microsoft.com/fwlink/?linkid=236297
+        Sharepoint Online requires a separate module - https://www.microsoft.com/en-us/download/details.aspx?id=35588
+        Skype for Business Online requires a separate module - https://www.microsoft.com/en-us/download/details.aspx?id=39366
+
+        .EXAMPLE
+        Disconnect-PHOffice365
+        
+        VERBOSE: Disconnecting from all Office 365 Services.        
+
+        This command disconnectes from all Office 365 service sessions that are available and running.
+
+        .EXAMPLE
+        Disconnect-PHOffice365 -Service ComplianceCenter, ExchangeOnline, AzureAD
+
+        VERBOSE: Disconnecting from AzureAD.
+        VERBOSE: Disconnecting from Compliance Center.
+        VERBOSE: Disconnecting from Exchange Online.
+
+        This command disconnectes from AzureAD, Compliance and Exchange Online service sessions that are available and running.
+
+        .NOTES
+        Created on:     2017-02-23 14:56
+        Created by:     Philip Haglund
+        Organization:   Gonjer.com        
+        Version:        0.1
+        Requirements:   Powershell 3.0
+        Changelog:      2017-02-23 14:56 - Creation of script.        
+
+        .LINK
+        http://www.gonjer.com        
+    #>
+    [cmdletbinding(
+        SupportsShouldProcess = $true
+    )]
     param (
+        # Provide one or more Office 365 services to disconnect from.
         [Parameter(
             ValueFromPipeline = $true            
         )]
@@ -523,51 +666,61 @@ function Disconnect-PHOffice365
     )
     begin
     {
-
+        if (($service = $Service | Sort-Object -Unique).Count -gt 5)
+        {
+            $Service = 'All'
+        }
     }
     process
     {
-        switch ($Service)
+        if ($PSCmdlet.ShouldProcess("End the PowerShell session(s) for $($Service -replace '\s',', ') for Office 365.", $MyInvocation.MyCommand.Name))
         {
-            'AzureAD'
+            switch ($Service)
             {
-                Disconnect-AzureADOnline
+                'AzureAD'
+                {
+                    Write-Verbose -Message 'Disconnecting from AzureAD.' -Verbose
+                    Disconnect-AzureADOnline
+                }
+                'MSOnline'
+                {
+                    Write-Verbose -Message 'Disconnecting from MsolService.' -Verbose
+                    Disconnect-MsolServiceOnline
+                }
+                'ComplianceCenter'
+                {
+                    Write-Verbose -Message 'Disconnecting from Compliance Center.' -Verbose
+                    Disconnect-CCOnline
+                }
+                'ExchangeOnline'
+                {
+                    Write-Verbose -Message 'Disconnecting from Exchange Online.' -Verbose
+                    Disconnect-ExchangeOnline
+                }
+                'SharepointOnline'
+                {
+                    Write-Verbose -Message 'Disconnecting from Sharepoint Online.' -Verbose
+                    Disconnect-SPOnline
+                }
+                'SkypeforBusinessOnline'
+                {
+                    Write-Verbose -Message 'Disconnecting from Skype for Business Online.' -Verbose
+                    Disconnect-SfBOnline
+                }
+                Default
+                {
+                    Write-Verbose -Message 'Disconnecting from all Office 365 Services.' -Verbose
+                    Disconnect-AzureADOnline
+                    Disconnect-MsolServiceOnline
+                    Disconnect-CCOnline
+                    Disconnect-ExchangeOnline
+                    Disconnect-SPOnline
+                    Disconnect-SfBOnline
+                }
             }
-            'MSOnline'
-            {
-                Remove-Module -Name MSOnline -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-            }
-            'ComplianceCenter'
-            {
-                Disconnect-CCOnline
-            }
-            'ExchangeOnline'
-            {
-                Disconnect-ExchangeOnline
-            }
-            'SharepointOnline'
-            {
-                Disconnect-SPOnline
-            }
-            'SkypeforBusinessOnline'
-            {
-                Disconnect-SfBOnline
-            }
-            Default
-            {
-                Disconnect-AzureADOnline
-                Remove-Module -Name MSOnline -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-                Disconnect-CCOnline
-                Disconnect-ExchangeOnline
-                Disconnect-SPOnline
-                Disconnect-SfBOnline
-            }
-        }    
-    }
-    end
-    {
-        Remove-AzureADCredential
+            # If the saved credentials variables for some reason is not removed we remove them again.
+            Remove-AzureADCredential
+        }
     }
 }
 #endregion Office 365 Sessions
-#endregion Connect-Office365
