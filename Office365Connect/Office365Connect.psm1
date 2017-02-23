@@ -150,8 +150,11 @@ function Connect-CCOnline
 
     if ($null -ne (Get-CCOnlineSession))
     {
-        Write-Verbose -Message 'CCO PowerShell session already existis.'
-        return
+        if (Get-Command -Name 'Get-ComplianceSearch')
+        {
+            Write-Verbose -Message 'Compliance Center PowerShell session already existis.' -Verbose
+            return
+        }
     }
     try
     {
@@ -207,7 +210,6 @@ function Get-CCOnlineSession
     }
     
     return $session
-
 }
 #endregion Compliance Center Online
 #region Exchange Online
@@ -217,9 +219,12 @@ function Connect-ExchangeOnline
     param ()
 
     if ($null -ne (Get-ExchangeOnlineSession))
-    {
-        Write-Verbose -Message 'Exchange Online PowerShell session already existis.'
-        return
+    {        
+        if (Get-Command -Name 'Get-Mailbox')
+        {
+            Write-Verbose -Message 'Exchange Online PowerShell session already existis.' -Verbose
+            return
+        }
     }
     try
     {
@@ -238,7 +243,7 @@ function Connect-ExchangeOnline
     {
         Write-Warning -Message "Unable to load PSSession for Exchange Online - $($_.Exception.Message)"
         return
-    }    
+    }
 }
 function Disconnect-ExchangeOnline
 {
