@@ -499,9 +499,9 @@ function Connect-PHOffice365
         Created on:     2017-02-23 14:56
         Created by:     Philip Haglund
         Organization:   Gonjer.com        
-        Version:        0.1
+        Version:        1.0
         Requirements:   Powershell 3.0
-        Changelog:      2017-02-23 14:56 - Creation of script.        
+        Changelog:      2017-02-23 14:56 - Creation of function.        
 
         .LINK
         http://www.gonjer.com        
@@ -650,9 +650,9 @@ function Disconnect-PHOffice365
         Created on:     2017-02-23 14:56
         Created by:     Philip Haglund
         Organization:   Gonjer.com        
-        Version:        0.1
+        Version:        1.0
         Requirements:   Powershell 3.0
-        Changelog:      2017-02-23 14:56 - Creation of script.        
+        Changelog:      2017-02-23 14:56 - Creation of function.        
 
         .LINK
         http://www.gonjer.com        
