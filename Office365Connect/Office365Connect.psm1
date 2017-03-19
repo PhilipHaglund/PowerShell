@@ -531,7 +531,7 @@ function Connect-PHOffice365
             $domainattrib.HelpMessage = 'Enter a valid Sharepoint Online Domain. Example: "Contoso"'
             
             # Create an AliasAttribute Object for the parameter
-            $domainalias = New-Object System.Management.Automation.AliasAttribute -ArgumentList @('Domain','DomainHost','Customer')
+            $domainalias = New-Object -TypeName System.Management.Automation.AliasAttribute -ArgumentList @('Domain','DomainHost','Customer')
 
             # Create an AttributeCollection Object
             $attribcol = New-Object -TypeName System.Collections.ObjectModel.Collection[System.Attribute]
@@ -541,7 +541,7 @@ function Connect-PHOffice365
             $attribcol.Add($domainalias)
             
             # Add the SharepointDomain paramater to the "Runtime"
-            $domainparam = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter('SharepointDomain', [string], $attribcol)
+            $domainparam = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameter -ArgumentList ('SharepointDomain', [string], $attribcol)
             
             # Expose the paramete
             $paramDictionary = New-Object -TypeName System.Management.Automation.RuntimeDefinedParameterDictionary
