@@ -168,7 +168,7 @@ function Connect-CCOnline
     }
     try
     {        
-        $null = Import-PSSession -Session (Get-CCOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue
+        $null = Import-Module (Import-PSSession -Session (Get-CCOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue) -DisableNameChecking -Global -ErrorAction Stop -WarningAction SilentlyContinue
     }
     catch
     {
@@ -237,8 +237,8 @@ function Connect-ExchangeOnline
         return
     }
     try
-    {        
-        $null = Import-PSSession -Session (Get-ExchangeOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue
+    {
+        $null = Import-Module (Import-PSSession -Session (Get-ExchangeOnlineSession) -DisableNameChecking -AllowClobber -ErrorAction Stop -WarningAction SilentlyContinue) -DisableNameChecking -Global -ErrorAction Stop -WarningAction SilentlyContinue
     }
     catch
     {

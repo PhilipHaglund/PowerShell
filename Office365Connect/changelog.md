@@ -1,3 +1,6 @@
+## Changelog Office365Connect v1.0.1.1
+1. Exchange Online and Compliance Center should now properly import cmdlets from PSSession. 
+
 ## Changelog Office365Connect v1.0.1.0
 1. Rename LICENSE.txt to LICENSE.
 2. Add `$Script:AzureADCredentials = $false` to avoid undefiend variables by PSharper.
