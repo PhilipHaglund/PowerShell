@@ -12,9 +12,9 @@
 
 .TAGS Clipboard Paste
 
-.LICENSEURI https://github.com/PhilipHaglund/PowerShell/Read-ClipboardArray/LICENSE
+.LICENSEURI https://github.com/PhilipHaglund/PowerShell/blob/master/Read-ClipboardArray/LICENSE
 
-.PROJECTURI https://github.com/PhilipHaglund/PowerShell/Read-ClipboardArray
+.PROJECTURI https://github.com/PhilipHaglund/PowerShell/tree/master/Read-ClipboardArray
 
 .ICONURI 
 
@@ -95,7 +95,7 @@ function Read-ClipboardArray
         No.[5]: 
         No.[6]: ?
 
-        The qustionmark will close the loop from importing anything more.
+        The questionmark will close the loop from importing anything more.
         The input to will be saved to the variable ClipboardArray.
         This example will not convert any objects in the array, all objects default to System.String.
         The EndChar parameter can be used when the input contains empty rows.
@@ -111,7 +111,20 @@ function Read-ClipboardArray
         No.[5]: 
         No.[6]: !
 
-        The Exlamationmark will close the loop from importing anything more.
+        $ClipboardArray | foreach {$_.Gettype()}
+
+        IsPublic IsSerial Name                                     BaseType                                                                                                            
+        -------- -------- ----                                     --------                                                                                                            
+        True     True     String                                   System.Object                                                                                                       
+        True     True     DateTime                                 System.ValueType                                                                                                    
+        True     True     Int32                                    System.ValueType                                                                                                    
+        True     True     Int64                                    System.ValueType                                                                                                    
+        True     True     Boolean                                  System.ValueType                                                                                                    
+        True     True     String                                   System.Object              
+
+
+
+        The exlamationmark will close the loop from importing anything more.
         The input to will be saved to the variable ClipboardArray.
         This example will try to convert every object in the array to all avaiable data types. If its not possible it will default back to System.String.
         The order for the data type convertion is [System.DateTime], [System.Int32], [System.Int64], [System.Boolean], [System.String].
@@ -126,35 +139,158 @@ function Read-ClipboardArray
         Version:        1.0.0.0
         Requirements:   Powershell 3.0
                         
-        
+        .INPUTS
+        System.String
+
         .LINK
         https://gonjer.com
         https://github.com/PhilipHaglund
     #> 
 [CmdletBinding(
-    HelpUri = 'https://github.com/PhilipHaglund/PowerShell/Read-ClipboardArray',
+    HelpUri = 'https://github.com/PhilipHaglund/PowerShell/tree/master/Read-ClipboardArray',
     PositionalBinding = $false,
     DefaultParameterSetName = 'Default'
 )]
+[Alias('rca')]
 param (
     [Parameter(
         ParameterSetName = 'Default'
     )]
     [ValidateSet('All', 'DateTime', 'Int32', 'Int64', 'Boolean', 'String')]
     [Alias('D')]
-    [string]$DataType = 'String',
+    [string[]]$DataType = 'String',
 
     [Parameter(
         ParameterSetName = 'Default'
     )]
     [Alias('E')]
-    [char]$EndChar = ''
+    [string]$EndChar = ''
 )
 
     begin
     {
+        if (($DataType = $DataType | Sort-Object -Unique).Count -gt 5 -or $DataType -eq 'All')
+        {
+            [string]$DataType = 'All'
+        }
+
         New-Variable -Name ClipboardArray -Value @() -Scope Script -Force -Description 'Variable created from Read-ClipboardArray.'
         [uint32]$n = 0
+
+        function Convert-Object
+        {
+            <#
+                .SYNOPSIS
+                Simple inline function to convert strings to other object types.
+            #>
+            [CmdletBinding()]
+            [OutputType('System.String', 'System.DateTime', 'System.Int32', 'System.Int64', 'System.Boolean')]
+            param (
+                [Parameter(
+                    ValueFromPipeline = $true
+                )]
+                [AllowNull()]
+                [string]$InputObject
+            )
+            process
+            {
+                switch ($DataType)
+                {
+                    DateTime
+                    {
+                        try
+                        {
+                            Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,$DataType)
+                            [Convert]::ToDateTime($InputObject)
+                        }
+                        catch
+                        {
+                            [string]$InputObject
+                        }
+                    }
+                    Int32
+                    {
+                        
+                        try
+                        {
+                            Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,$DataType)
+                            [Convert]::ToInt32($InputObject)
+                        }
+                        catch
+                        {
+                            [string]$InputObject
+                        }
+                    }
+                    Int64
+                    {
+                        
+                        try
+                        {
+                            Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,$DataType)
+                            [Convert]::ToInt64($InputObject)
+                        }
+                        catch
+                        {
+                            [string]$InputObject
+                        }
+                    }
+                    Boolean
+                    {
+                        
+                        try
+                        {
+                            Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,$DataType)
+                            [Convert]::ToBoolean($InputObject)
+                        }
+                        catch
+                        {
+                            [string]$InputObject
+                        }
+                    }
+                    All
+                    {
+                        try
+                        {
+                            Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,'DateTime')
+                            [Convert]::ToDateTime($InputObject)
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,'Int32')
+                                [Convert]::ToInt32($InputObject)
+                            }
+                            catch
+                            {
+                                try
+                                {
+                                    Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,'Int64')
+                                    [Convert]::ToInt64($InputObject)
+                                }
+                                catch
+                                {
+                                    try
+                                    {
+                                        Write-Verbose -Message ('Trying to convert {0} to {1}' -f $InputObject,'Boolean')
+                                        [Convert]::ToBoolean($InputObject)
+                                    }
+                                    catch
+                                    {
+                                        [string]$InputObject
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Default
+                    {
+                        [string]$InputObject
+                    }
+
+                }
+            }
+        }
     }
     process
     {
@@ -165,15 +301,14 @@ param (
         
             if ($Input -ne $EndChar) 
             {
-                $ClipboardArray += $Input
+                $script:ClipboardArray += $Input | Convert-Object
             }
         }
         until ($Input -eq $EndChar)
     }
     end
     {
-    
+        Write-Verbose -Message 'Enter $ClipboardArray to access the pasted array objects'
     }
-
 }
 
