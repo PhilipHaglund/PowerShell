@@ -26,6 +26,7 @@
 
 .RELEASENOTES
 
+.DESCRIPTION Contains a function used to paste an array of objects from the Windows Clipboard to an script variable.
 
 #>
 function Read-ClipboardArray
