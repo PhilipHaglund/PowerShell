@@ -11,13 +11,13 @@
         Make sure that 'Sideloading of external bots & tabs' setting is enabled on your Office 365 tenant if you want to be able and open links.
         
         .EXAMPLE
-        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49b3-b486-60bv687428a7'
+        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49ba-6b24-09yv4214a238'
         Send-TeamsNotification -Uri $Uri -Text 'Example notification message'
         
         This cmdlet will post a simple notification message to the selected (uri) Microsoft Teams channel with the text provided in the parameter 'Text'.
 
         .EXAMPLE
-        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49b3-b486-60bv687428a7'
+        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49ba-6b24-09yv4214a238'
         Send-TeamsNotification -Uri $Uri -Text 'Example notification message' -Title 'Notification' -ThemeColor 'E81123'
 
         This cmdlet will post an advanced notification message to the selected (uri) Microsoft Teams channel with the text provided in the parameter 'Text'.
@@ -25,7 +25,7 @@
         The notification message will have a color banner with the HTML color E81123.
 
         .EXAMPLE
-        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49b3-b486-60bv687428a7'
+        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49ba-6b24-09yv4214a238'
         Send-TeamsNotification -Uri $Uri -Text 'Example notification message' -Title 'IMPORTANT!' -ThemeColor 'FF8000' -ButtonType ViewAction -ButtonName 'Click Here' -ButtonTarget 'https://contoso.com'
 
         This cmdlet will post a more advanced notification message to the selected (uri) Microsoft Teams channel with the text provided in the parameter 'Text'.
@@ -34,7 +34,7 @@
         The notification message will contain a button with a link target to 'https://contoso.com'.
 
         .EXAMPLE
-        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49b3-b486-60bv687428a7'
+        $Uri = 'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49ba-6b24-09yv4214a238'
         $Object = [PscustomObject]@{Text = 'Example notification message'}
         $Object | Send-TeamsNotification -Uri $Uri
 
@@ -65,7 +65,7 @@
             How to enable a webhook connector can be found in the following link: https://msdn.microsoft.com/en-us/microsoft-teams/connectors
 
             Example of a webhooks uri:
-            'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49b3-b486-60bv687428a7'
+            'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49ba-6b24-09yv4214a238'
         #>
         
         [Parameter(
@@ -171,7 +171,7 @@
     {
         foreach ($global:Param in $PSBoundParameters.GetEnumerator())
         {
-            Write-Verbose -Message ('Parameter "{0}"; Value: "{1}"' -f $Param.Key,$Param.Value)
+            Write-Verbose -Message ('Parameter: "{0}"; Value: "{1}"' -f $Param.Key,$Param.Value)
         }
         
         Write-Verbose -Message ('ParameterSetName: {0}' -f $PSCmdlet.ParameterSetName)
@@ -200,18 +200,24 @@
                 
                 if ($PSCmdlet.ParameterSetName -eq 'Extended')
                 {
-                    $PotentialAction = [Object[]]@{}
+                    $PotentialAction = [ordered]@{}
                     $PotentialAction.Add('@context','https://schema.org')
                     $PotentialAction.Add('@type',$PSBoundParameters['ButtonType'])
                     $PotentialAction.Add('name',$PSBoundParameters['ButtonName'])
-                    $PotentialAction.Add('target',[Object[]]$PSBoundParameters['target'])
+                    $PotentialAction.Add('target',[Object[]]$PSBoundParameters['ButtonTarget'])
+                    $hash.Add('potentialAction',[Object[]]$PotentialAction)
                 }
             }
                           
             try
             {
                 $Json = ConvertTo-Json -InputObject $Hash -Compress -ErrorAction Stop
-                Write-Verbose -Message $Json
+                if ($PSCmdlet.ParameterSetName -eq 'Extended')
+                {
+                    # Workaround: Buttontarget does not properly get converted to the correct Json type event when declaring that the target is an Object Array.
+                    $Json = $Json -replace ('"{0}"'-f $PSBoundParameters['ButtonTarget']),('["{0}"]'-f $PSBoundParameters['ButtonTarget'])
+                }
+                Write-Verbose -Message ('JSON: {0}' -f $Json)
             }
             catch
             {
@@ -226,7 +232,7 @@
             }
             catch
             {
-                Write-Error -Message ('Unable to convert input to JSON - {0}' -f $_.Exception.Message)
+                Write-Error -Message ('Unable to send Method - {0}' -f $_.Exception.Message)
             }
         }
     }
