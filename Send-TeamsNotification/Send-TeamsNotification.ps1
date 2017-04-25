@@ -6,7 +6,7 @@
         
         .DESCRIPTION
         Send a notification message to a Microsoft Teams channel using an incomming webhooks connection. 
-        Before one can send/post a webhook connection to a channel, the webhooks connector needs to be enabled for that channel. See the link below.
+        Before one can send/post a webhook connection to a channel the webhook connector must be activated for the channel. See the link below.
         Microsoft Teams Connectors: https://msdn.microsoft.com/en-us/microsoft-teams/connectors
         Make sure that 'Sideloading of external bots & tabs' setting is enabled on your Office 365 tenant if you want to be able and open links.
         
@@ -21,7 +21,7 @@
         Send-TeamsNotification -Uri $Uri -Text 'Example notification message' -Title 'Notification' -ThemeColor 'E81123'
 
         This cmdlet will post an advanced notification message to the selected (uri) Microsoft Teams channel with the text provided in the parameter 'Text'.
-        The notification message will have title or heading named 'Notification'
+        The notification message will have a title or heading named 'Notification'
         The notification message will have a color banner with the HTML color E81123.
 
         .EXAMPLE
@@ -29,7 +29,7 @@
         Send-TeamsNotification -Uri $Uri -Text 'Example notification message' -Title 'IMPORTANT!' -ThemeColor 'FF8000' -ButtonType ViewAction -ButtonName 'Click Here' -ButtonTarget 'https://contoso.com'
 
         This cmdlet will post a more advanced notification message to the selected (uri) Microsoft Teams channel with the text provided in the parameter 'Text'.
-        The notification message will have title or heading named 'IMPORTANT!'
+        The notification message will have a title or heading named 'IMPORTANT!'
         The notification message will have a color banner with the HTML color FF8000.
         The notification message will contain a button with a link target to 'https://contoso.com'.
 
@@ -38,7 +38,7 @@
         $Object = [PscustomObject]@{Text = 'Example notification message'}
         $Object | Send-TeamsNotification -Uri $Uri
 
-        This cmdlet will post a simple notification message to the selected (uri) Microsoft Teams channel with information provided from the pieline.
+        This cmdlet will post a simple notification message to the selected (uri) Microsoft Teams channel with information provided from the pipeline.
         
 
         .NOTES
@@ -57,12 +57,15 @@
     #>
 
     [CmdletBinding(
+        HelpUri = 'https://github.com/PhilipHaglund/PowerShell/tree/master/Send-TeamsNotification',
         SupportsShouldProcess = $true
     )]
     param (
         <#
-            An Uri for a incomming webhook at a Microsoft Teams channel.
-            How to enable a webhook connector can be found in the following link: https://msdn.microsoft.com/en-us/microsoft-teams/connectors
+            An Uri for an incomming webhook at a Microsoft Teams channel.
+            How to enable a webhook connector can be found in the following links:
+            https://msdn.microsoft.com/en-us/microsoft-teams/connectors
+            https://github.com/PhilipHaglund/PowerShell/tree/master/Send-TeamsNotification
 
             Example of a webhooks uri:
             'https://outlook.office.com/webhook/5adf112d-4426-45ad-bce5-7e27r3d4eac4@4580044a-27bc-41b9-b7f2-e0f0dd7cbb56/IncomingWebhook/527c1b2asd2b67ae991ac5118e07a8e6/433a0d7d-6508-49ba-6b24-09yv4214a238'
@@ -70,14 +73,17 @@
         
         [Parameter(
             ParameterSetName = 'Text',
+            HelpMessage = 'Enter an Uri for a incomming webhook at a Microsoft Teams channel.',
             Mandatory = $true
         )]
         [Parameter(
             ParameterSetName = 'Extended',
+            HelpMessage = 'Enter an Uri for a incomming webhook at a Microsoft Teams channel.',
             Mandatory = $true
         )]
          [Parameter(
             ParameterSetName = 'Pipeline',
+            HelpMessage = 'Enter an Uri for a incomming webhook at a Microsoft Teams channel.',
             Mandatory = $true
         )]
         [uri]$Uri,
@@ -86,15 +92,17 @@
         # A text string that will represent the actual notification message.       
         [Parameter(
             ParameterSetName = 'Text',
+            HelpMessage = 'Enter a text string that will represent the actual notification message.',
             Mandatory = $true
         )]
         [Parameter(
             ParameterSetName = 'Extended',
+            HelpMessage = 'Enter a text string that will represent the actual notification message.',
             Mandatory = $true
         )]
         [string]$Text,
 
-        # If the notification message should have Title/Header for it's message.
+        # If the notification message should have Title/Header for its message.
         [Parameter(
             ParameterSetName = 'Text'
         )]
@@ -103,7 +111,7 @@
         )]
         [string]$Title = 'Title',
 
-        # If the notification message should have special color for it's message banner.
+        # If the notification message should have special color for its message banner.
         [Parameter(
             ParameterSetName = 'Text'
         )]
@@ -121,6 +129,7 @@
         #>
         [Parameter(
             ParameterSetName = 'Extended',
+            HelpMessage = 'Enter a ButtonType from Schema.org with the type "Consume Action" that will be used by the webhooks API to provide a valid button.',
             Mandatory = $true
         )]
         [ValidateSet('ViewAction')]
@@ -132,26 +141,29 @@
         #>
         [Parameter(
             ParameterSetName = 'Extended',
+            HelpMessage = 'Enter a ButtonName string that will be used in the webhooks API to provide a text inside the button.',
             Mandatory = $true
         )]
         [string]$ButtonName,
 
         <#
             If this parameter is used the ParameterSet will be 'Extended' and the following parameters is mandatory: ButtonType and ButtonName.
-            ButtonTarget is a uri or string that is used in the webhooks API to provide a clickable link button.
+            ButtonTarget is an uri or string that is used in the webhooks API to provide a clickable link button.
         #>
         [Parameter(
             ParameterSetName = 'Extended',
+            HelpMessage = 'Enter a ButtonTarget uri that will be used in the webhooks API to provide a text inside the button.',
             Mandatory = $true
         )]
         [uri]$ButtonTarget,
 
         <#
             Inputobject will take a PSObject as input from the pipeline.
-            This parameter is in beta and needs a validator to not allow faulty PSObjects.
+            This parameter is in beta and needs a validated properly to not allow faulty PSObjects.
         #>
         [Parameter(
             ValueFromPipeline = $true,
+            HelpMessage = 'Add a PSObject.',
             ParameterSetName = 'Pipeline',
             Mandatory = $true
         )]
@@ -160,7 +172,7 @@
 
     begin
     {
-        $Inr = @{
+        [hashtable]$Inr = @{
             Method      = 'Post'
             Uri         = $Uri
             ContentType = 'application/json'
@@ -169,7 +181,7 @@
     }
     process
     {
-        foreach ($global:Param in $PSBoundParameters.GetEnumerator())
+        foreach ($Param in $PSBoundParameters.GetEnumerator())
         {
             Write-Verbose -Message ('Parameter: "{0}"; Value: "{1}"' -f $Param.Key,$Param.Value)
         }
