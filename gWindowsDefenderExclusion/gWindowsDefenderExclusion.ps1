@@ -39,7 +39,7 @@ class gWindowsDefenderExclusion
     [string[]]$ExclusionProcess
 
 
-    [gWindowsDefenderExclusion] Get()
+    [gWindowsDefenderExclusion]Get()
     {
         Write-Verbose -Message ('{0} - Getting Windows Defender Exclusion' -f $MyInvocation.MyCommand)
 
@@ -50,7 +50,7 @@ class gWindowsDefenderExclusion
         return $this
     }
 
-    [bool] Test()
+    [bool]Test()
     {
         Write-Verbose -Message ('{0} - Testing Windows Defender Exclusion' -f $MyInvocation.MyCommand)
 
@@ -69,7 +69,7 @@ class gWindowsDefenderExclusion
         }
         else
         {
-            [ExclusionExtension]::Correct
+            [ExclusionPath]::Correct
         }
 
         if ($this.ExclusionProcess -notmatch $this.GetExclusion().Properties.ExclusionProcess)
@@ -84,7 +84,7 @@ class gWindowsDefenderExclusion
         return $true
     }
 
-    [void] Set()
+    [void]Set()
     {
         Write-Verbose -Message ('{0} - Setting Windows Defender Exclusion' -f $MyInvocation.MyCommand)
     }
@@ -100,5 +100,7 @@ class gWindowsDefenderExclusion
         {
             return $false
         }
+
+      
     }
 }
