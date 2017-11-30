@@ -641,7 +641,7 @@ h5, .tinyText {
         min-height: 290px;
         min-width: 320px;
         max-width: 412px;
-        width: calc(100% - 40px);
+        width: 338px;
         height: auto;
         padding: 23px 18px 0px 18px;
         /* Add drop shadow */
