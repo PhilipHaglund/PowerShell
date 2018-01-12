@@ -4,14 +4,20 @@ function Invoke-ModuleUpdate {
     Update one, several or all installed modules.
     
     .DESCRIPTION
-    Long description
+    Invoke-ModuleUpdate, find or update installed modules that have a repository location, for example from PowerShell Gallery.    
+    The script is based on the "Check-ModuleUpdate.ps1" from Jeffery Hicks* to check for available updates for installed PowerShell modules.
+
+    *Credit: http://jdhitsolutions.com/blog/powershell/5441/check-for-module-updates/
     
-    .PARAMETER ParameterName
+    .PARAMETER Name
+    Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted. 
+    
+    .PARAMETER Update
     Parameter description
     
-    .PARAMETER ParameterName
+    .PARAMETER Force
     Parameter description
-    
+
     .EXAMPLE
     An example
     
@@ -19,10 +25,11 @@ function Invoke-ModuleUpdate {
     General notes
     #>
     param (
-        # Switch parameter to update modules
+        # Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted. 
         [Parameter(AttributeValues)]
         [ParameterType]
-        $ParameterName,
+        [WildcardPattern()]
+        $Name = '*',
 
         # Force update modules
         [Parameter(AttributeValues)]
@@ -34,6 +41,7 @@ function Invoke-ModuleUpdate {
 $Modules = Get-Module -Name $Name -ListAvailable | Where-Object -FilterScript {
     $_.RepositorySourceLocation -ne $null
 } | Group-Object -Property Name
+$Paramet 
 
 $TotalCount = $Modules.Count
 
