@@ -10,7 +10,7 @@ function Invoke-ModuleUpdate {
     *Credit: http://jdhitsolutions.com/blog/powershell/5441/check-for-module-updates/
     
     .PARAMETER Name
-    Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted. 
+    Specifies names or name patterns of modules that this command gets. Wildcard characters are permitted. 
     
     .PARAMETER Update
     Switch parameter to update modules specified.
@@ -24,11 +24,11 @@ function Invoke-ModuleUpdate {
     .NOTES
     General notes
     #>
-    [CmdletBinding(
+    [commandBinding(
         SupportsShouldProcess = $true
     )]
     param (
-        # Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted.
+        # Specifies names or name patterns of modules that this command gets. Wildcard characters are permitted.
         [Parameter(
             ValueFromPipeline = $true,
             Position = 0
@@ -80,7 +80,7 @@ function Invoke-ModuleUpdate {
                 [int]$TotalCount = $Modules.Count + 1
             }
             
-            # To speed up 'Find-Module' cmdlet and not query all existing repositories.
+            # To speed up 'Find-Module' command and not query all existing repositories.
             $Repositories = Get-PSRepository -ErrorAction Stop
         
             switch ($Update) {
