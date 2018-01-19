@@ -39,11 +39,11 @@ function Invoke-ModuleUpdate {
     .NOTES
     General notes
     #>
-    [CmdletBinding(
+    [commandBinding(
         SupportsShouldProcess = $true
     )]
     param (
-        # Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted.
+        # Specifies names or name patterns of modules that this command gets. Wildcard characters are permitted.
         [Parameter(
             ValueFromPipeline = $true,
             Position = 0
