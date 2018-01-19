@@ -39,11 +39,11 @@ function Invoke-ModuleUpdate {
     .NOTES
     General notes
     #>
-    [commandBinding(
+    [CmdletBinding(
         SupportsShouldProcess = $true
     )]
     param (
-        # Specifies names or name patterns of modules that this command gets. Wildcard characters are permitted.
+        # Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted.
         [Parameter(
             ValueFromPipeline = $true,
             Position = 0
@@ -147,14 +147,14 @@ function Invoke-ModuleUpdate {
                 }
 
                 try {
-                    if (($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name) {
+                    <#if (($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name) {
                         Write-Verbose -Message ($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name
                         $FindModule = @{
-                            Repository  = ($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name
+                            #Repository  = ($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name
                             ErrorAction = 'Stop'
                         }
                         $Repository = 'in repository {0}' -f $Repository
-                    }
+                    }#>
                     [PSCustomObject]$Online = Find-Module -Name $Module.Name @FindModule
                 }
                 catch {
