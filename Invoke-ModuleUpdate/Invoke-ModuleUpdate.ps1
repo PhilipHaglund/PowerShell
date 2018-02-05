@@ -4,11 +4,8 @@ function Invoke-ModuleUpdate {
     Update one, several or all installed modules if an update is available.
     
     .DESCRIPTION
-    Invoke-ModuleUpdate, installed modules that have a repository location, for example from PowerShell Gallery.    
+    Invoke-ModuleUpdate for installed modules that have a repository location for example from PowerShell Gallery.
     The script is based on the "Check-ModuleUpdate.ps1" from Jeffery Hicks* to check for available updates for installed PowerShell modules.
-
-    The switch parameter 'All' can be used to query all installed modules even if a repository isn't specified.
-    For instance Pester module is included in Windows 10/2016 by default and does not have repository specified.
 
     *Credit: http://jdhitsolutions.com/blog/powershell/5441/check-for-module-updates/
     
@@ -16,13 +13,10 @@ function Invoke-ModuleUpdate {
     Specifies names or name patterns of modules that this cmdlet gets. Wildcard characters are permitted.
     
     .PARAMETER Update
-    Switch parameter to invoke a 'Update-Module' for targeted modules. Default this is off and the function will only list the current and available versions.
-
-    .PARAMETER All
-    Switch parameter to check for all installed modules, regardless of a specified repository or not.
+    Switch parameter to invoke a 'Update-Module' for targeted modules. The default behavior without this switch is that the function will only list the current and available versions.
     
     .PARAMETER Force
-    # Switch parameter forces the update of each specified module, regardless of the current version of the module installed.
+    Switch parameter forces the update of each specified module, regardless of the current version of the module installed.
 
     .EXAMPLE
     Invoke-ModuleUpdate
@@ -33,11 +27,8 @@ function Invoke-ModuleUpdate {
     .EXAMPLE
     Invoke-ModuleUpdate -Name 'AzureAD', 'PSScriptAnalyzer' -Update
 
-    .EXAMPLE
-    Invoke-ModuleUpdate -All
-
     .NOTES
-    General notes
+    Requires PowerShell 4.0
     #>
     [CmdletBinding(
         SupportsShouldProcess = $true
@@ -53,17 +44,11 @@ function Invoke-ModuleUpdate {
         [SupportsWildcards()]
         [string[]]$Name = '*',
 
-        # Switch parameter to invoke a 'Update-Module' for targeted modules. Default this is off and the function will only list the current and available versions.
+        # Switch parameter to invoke a 'Update-Module' for targeted modules. The default behavior without this switch is that the function will only list the current and available versions.
         [Parameter(
             Position = 1
         )]
         [switch]$Update,
-
-        # Switch parameter to check for all installed modules, regardless of a specified repository or not.
-        [Parameter(
-            Position = 2
-        )]
-        [switch]$All,
 
         # Switch parameter forces the update of each specified module, regardless of the current version of the module installed.
         [Parameter(
@@ -73,18 +58,9 @@ function Invoke-ModuleUpdate {
     )
 
     begin {
-        try {
+        try {            
+            [array]$Modules = (Get-Module -Name $Name -ListAvailable -ErrorAction Stop).Where( {$null -ne $_.RepositorySourceLocation} )
             
-            [array]$Modules = Get-Module -Name $Name -ListAvailable -ErrorAction Stop
-            
-            # List all installed modules based on the switch parameter 'All'
-            if (-not ($PSBoundParameters.ContainsKey('All'))) {
-                [array]$Modules = $Modules.Where( {$null -ne $_.RepositorySourceLocation} )
-                $FindModule = @{
-                    ErrorAction = 'Stop'
-                }
-            }
-
             # Sort the modules using the Length of the 'Name' property (pipeline with PSCustomObject uses the default 8 char length and trims output with dots.)
             # Group all modules to exclude multiple versions.
             [array]$Modules = $Modules | Sort-Object -Property {$_.Name.Length}, Name -Descending | Group-Object -Property Name
@@ -96,11 +72,11 @@ function Invoke-ModuleUpdate {
                 [int]$TotalCount = $Modules.Count + 1
             }
             
-            # To speed up the 'Find-Module' cmdlet and not query all existing repositories.
+            # To speed up the 'Find-Module' cmdlet and not query all existing repositories, save all existing repositories.
             [PSCustomObject]$Repositories = Get-PSRepository -ErrorAction Stop
         
             switch ($Update) {
-                True {
+                $true {
                     [string]$Status = 'Updating module'
                 }
                 Default {
@@ -109,7 +85,7 @@ function Invoke-ModuleUpdate {
             }
 
             switch ($Force) {
-                True {
+                $true {
                     $ForceModule = @{
                         Force       = $true
                         ErrorAction = 'Stop'
@@ -137,28 +113,33 @@ function Invoke-ModuleUpdate {
             Write-Progress -Activity ('{0} {1}' -f $Status, $Group.Group[0].Name) -Status ('{0}% Complete:' -f $PercentComplete) -PercentComplete $PercentComplete
             
             if ($PSCmdlet.ShouldProcess(('{0}' -f $Group.Group[0].Name), $MyInvocation.MyCommand.Name)) {
-                if ($Group.Count -gt 1) {
-                    [string[]]$MultipleVersions = $Group.Group.Version[1..($Group.Group.Version.Length)]
-                    [Management.Automation.PSModuleInfo]$Module = (($Group).Group | Sort-Object -Property Version -Descending)[0]
+                switch ($Group.Count) {
+                    ( {$PSITem -gt 1}) {
+                        [string[]]$MultipleVersions = $Group.Group.Version[1..($Group.Group.Version.Length)]
+                        [Management.Automation.PSModuleInfo]$Module = (($Group).Group | Sort-Object -Property Version -Descending)[0]
+                    }
+                    Default {
+                        [bool]$MultipleVersions = $false
+                        [Management.Automation.PSModuleInfo]$Module = $Group.Group[0]
+                    }
                 }
-                else {
-                    [bool]$MultipleVersions = $false
-                    [Management.Automation.PSModuleInfo]$Module = $Group.Group[0]
-                }
-
                 try {
-                    <#if (($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name) {
+                    if ($Repository = ($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name) {
                         Write-Verbose -Message ($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name
                         $FindModule = @{
-                            #Repository  = ($Repositories.Where{[string]$_.SourceLocation -eq [string]$Module.RepositorySourceLocation}).Name
+                            Repository  = $Repository
                             ErrorAction = 'Stop'
                         }
-                        $Repository = 'in repository {0}' -f $Repository
-                    }#>
+                    }
+                    else {
+                        $FindModule = @{
+                            ErrorAction = 'Stop'
+                        }
+                    }
                     [PSCustomObject]$Online = Find-Module -Name $Module.Name @FindModule
                 }
                 catch {
-                    Write-Warning -Message ('Unable to find module {0}{1}. Error: {2}' -f $Module.Name, $Repository, $_.Exception.Message)
+                    Write-Warning -Message ('Unable to find module {0}. Error: {1}' -f $Module.Name, $_.Exception.Message)
                     continue
                 }
 
@@ -184,7 +165,7 @@ function Invoke-ModuleUpdate {
                     'Current Version'   = $CurrentVersion
                     'Online Version'    = $Online.Version
                     'Multiple Versions' = $MultipleVersions
-                }
+                } | $PipelineOutput.PSObject.TypeNames.Insert(0, 'XGIC.New.ExternalUser')
             }             
         }
     }
