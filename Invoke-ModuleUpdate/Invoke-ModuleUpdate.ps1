@@ -63,13 +63,13 @@ function Invoke-ModuleUpdate {
             
             # Sort the modules using the Length of the 'Name' property (pipeline with PSCustomObject uses the default 8 char length and trims output with dots.)
             # Group all modules to exclude multiple versions.
-            [array]$Modules = $Modules | Sort-Object -Property {$_.Name.Length}, Name -Descending | Group-Object -Property Name
+            [array]$Modules = $Modules | Group-Object -Property Name
 
-            if ($Modules.Count -eq 1) {
-                [int]$TotalCount = $Modules.Count
+            if ($Modules.Count -lt 1) {
+                [int]$TotalCount = $Modules.Count + 1
             }
             else {
-                [int]$TotalCount = $Modules.Count + 1
+                [int]$TotalCount = $Modules.Count
             }
             
             # To speed up the 'Find-Module' cmdlet and not query all existing repositories, save all existing repositories.
@@ -80,7 +80,7 @@ function Invoke-ModuleUpdate {
                     [string]$Status = 'Updating module'
                 }
                 Default {
-                    [string]$Status = 'Check latest module version for'
+                    [string]$Status = 'Looking for the latest version for module'
                 }
             }
 
@@ -93,7 +93,6 @@ function Invoke-ModuleUpdate {
                 }
                 Default {
                     $ForceModule = @{
-                        Force       = $false
                         ErrorAction = 'Stop'
                     }
                 }
@@ -105,6 +104,12 @@ function Invoke-ModuleUpdate {
             [Management.Automation.ErrorRecord]$ErrRecord = New-Object -TypeName System.Management.Automation.ErrorRecord -ArgumentList $Ex, 'ModuleError', $Category, $_.InvocationInfo
             $PSCmdLet.WriteError($ErrRecord)
             break
+        }
+        try {
+            Update-FormatData -PrependPath $PSScriptRoot\Invoke-ModuleUpdate.format.ps1xml -ErrorAction Stop
+        }
+        catch {
+            Write-Warning -Message ('Unable to Update-FormatData. Error {0}' -f $_.Exception.Message)
         }
     }
     process {
@@ -160,12 +165,15 @@ function Invoke-ModuleUpdate {
                     }
                 }
                 
-                [PSCustomObject]@{
+                $PSObject = [PSCustomObject]@{
                     'Name'              = [string]$Module.Name
                     'Current Version'   = $CurrentVersion
                     'Online Version'    = $Online.Version
                     'Multiple Versions' = $MultipleVersions
-                } | $PipelineOutput.PSObject.TypeNames.Insert(0, 'XGIC.New.ExternalUser')
+                }
+                
+                $PSObject.PSObject.TypeNames.Insert(0, 'Omnicit.Invoke.ModuleUpdate')
+                $PSObject
             }             
         }
     }

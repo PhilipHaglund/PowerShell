@@ -2,39 +2,38 @@
 <Configuration>
     <ViewDefinitions>
         <View>
-            <Name>User</Name>
+            <Name>Module</Name>
             <ViewSelectedBy>
-                <TypeName>XGIC.New.ExternalUser</TypeName>
+                <TypeName>Omnicit.Invoke.ModuleUpdate</TypeName>
             </ViewSelectedBy>
             <TableControl>
                 <TableHeaders>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
-                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Width>64</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Width>16</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Width>16</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                    </TableColumnHeader>
                 </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
                         <TableColumnItems>
                             <TableColumnItem>
-                                <PropertyName>SamAccountName</PropertyName>
+                                <PropertyName>Name</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>Password</PropertyName>
+                                <PropertyName>Current Version</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>AccountExpires</PropertyName>
+                                <PropertyName>Online Version</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>Manager</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>DisplayName</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>Mail</PropertyName>
+                                <PropertyName>Multiple Versions</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>
