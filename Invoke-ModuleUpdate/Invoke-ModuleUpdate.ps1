@@ -21,11 +21,43 @@ function Invoke-ModuleUpdate {
     .EXAMPLE
     Invoke-ModuleUpdate
 
+    Name                                                             Current Version  Online Version   Multiple Versions
+    ----                                                             ---------------  --------------   -----------------
+    SpeculationControl                                               1.0.0            1.0.8            False
+    AzureAD                                                          2.0.0.131        2.0.1.10         {2.0.0.115}
+    AzureADPreview                                                   2.0.0.154        2.0.1.11         {2.0.0.137}
+    ISESteroids                                                      2.7.1.7          2.7.1.7          {2.6.3.30}
+    MicrosoftTeams                                                   0.9.1            0.9.3            False
+    NTFSSecurity                                                     4.2.3            4.2.3            False
+    Office365Connect                                                 1.5.0            1.5.0            False
+    ...                                                              ...              ...              ...
+
+    This example returns the current and the latest version available for all installed modules that have a repository location.
+
     .EXAMPLE
     Invoke-ModuleUpdate -Update
 
+    Name                                                             Current Version  Online Version   Multiple Versions
+    ----                                                             ---------------  --------------   -----------------
+    SpeculationControl                                               1.0.8            1.0.8            {1.0.0}
+    AzureAD                                                          2.0.1.10         2.0.1.10         {2.0.0.131, 2.0.0.115}
+    AzureADPreview                                                   2.0.1.11         2.0.1.11         {2.0.0.137, 2.0.0.154}
+    ISESteroids                                                      2.7.1.7          2.7.1.7          {2.6.3.30}
+    MicrosoftTeams                                                   0.9.3            0.9.3            {0.9.1}
+    NTFSSecurity                                                     4.2.3            4.2.3            False
+    Office365Connect                                                 1.5.0            1.5.0            False
+    ...                                                              ...              ...              ...
+
+    This example installs the latest version available for all installed modules that have a repository location.
+
     .EXAMPLE
     Invoke-ModuleUpdate -Name 'AzureAD', 'PSScriptAnalyzer' -Update
+
+    Name                                                             Current Version  Online Version   Multiple Versions
+    ----                                                             ---------------  --------------   -----------------
+    SpeculationControl                                               1.0.8            1.0.8            {1.0.0}
+    AzureAD                                                          2.0.1.10         2.0.1.10         {2.0.0.131, 2.0.0.115}
+    PSScriptAnalyzer                                                 1.17.1           1.17.1           {1.17.0}
 
     .NOTES
     Requires PowerShell 4.0
@@ -83,20 +115,6 @@ function Invoke-ModuleUpdate {
                     [string]$Status = 'Looking for the latest version for module'
                 }
             }
-
-            switch ($Force) {
-                $true {
-                    $ForceModule = @{
-                        Force       = $true
-                        ErrorAction = 'Stop'
-                    }
-                }
-                Default {
-                    $ForceModule = @{
-                        ErrorAction = 'Stop'
-                    }
-                }
-            }
         }
         catch {
             [Exception]$Ex = New-Object -TypeName System.Exception -ArgumentList ('{0}{1}' -f 'Unable to get module information. Error: ', $_.Exception.Message)
@@ -152,8 +170,9 @@ function Invoke-ModuleUpdate {
                 if ($PSBoundParameters.ContainsKey('Update')) {
                     if ([version]$Online.Version -gt [version]$Module.Version) {
                         try {
-                            Update-Module -Name $Module.Name @Force
+                            Update-Module -Name $Module.Name -Force:$PSBoundParameters['Force'] -ErrorAction Stop
                             [version]$CurrentVersion = $Online.Version
+                            $MultipleVersions += $Module.Version 
                         }
                         catch {
                             Write-Warning -Message ('Unable to update module. Error: {0}' -f $_.Exception.Message)
